@@ -273,12 +273,8 @@
     <script>
         const SENHA_PADRAO = 'docs123';
         
-        // Verificar se já está logado
-        window.onload = function() {
-            if (localStorage.getItem('asm_logado') === 'true') {
-                window.location.href = 'docs.html';
-            }
-        };
+        // Limpar qualquer sessão anterior ao carregar a página
+        localStorage.removeItem('asm_logado');
         
         function abrirModal() {
             document.getElementById('modal-login').classList.add('active');
@@ -303,7 +299,8 @@
             const senha = document.getElementById('senha').value;
             
             if (senha === SENHA_PADRAO) {
-                localStorage.setItem('asm_logado', 'true');
+                // Salvar apenas para a sessão atual (será limpo no próximo acesso)
+                sessionStorage.setItem('asm_logado', 'true');
                 window.location.href = 'docs.html';
             } else {
                 document.getElementById('erro').classList.add('show');
