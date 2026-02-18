@@ -178,7 +178,7 @@
         }
         
         .input-group {
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
         
         .input-group label {
@@ -196,7 +196,9 @@
             padding: 14px 16px;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
-            font-size: 15px;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 3px;
             transition: all 0.3s ease;
             outline: none;
         }
@@ -216,7 +218,6 @@
             font-weight: 700;
             cursor: pointer;
             width: 100%;
-            margin-top: 10px;
             transition: all 0.3s ease;
         }
         
@@ -260,17 +261,12 @@
     
     <div id="modal-login" class="modal-overlay" onclick="fecharModalFora(event)">
         <div class="modal" onclick="event.stopPropagation()">
-            <h2>🔐 Acesso ao Sistema</h2>
+            <h2>🔐 Digite a Senha</h2>
             <div class="input-group">
-                <label>Usuário</label>
-                <input type="text" id="usuario" placeholder="Digite seu usuário">
-            </div>
-            <div class="input-group">
-                <label>Senha</label>
-                <input type="password" id="senha" placeholder="Digite sua senha">
+                <input type="password" id="senha" placeholder="••••••" maxlength="10">
             </div>
             <button class="btn-login" onclick="login()">Acessar</button>
-            <p id="erro" class="error-msg">Senha incorreta! Use: docs123</p>
+            <p id="erro" class="error-msg">Senha incorreta!</p>
         </div>
     </div>
     
@@ -286,13 +282,14 @@
         
         function abrirModal() {
             document.getElementById('modal-login').classList.add('active');
-            document.getElementById('usuario').focus();
+            document.getElementById('senha').value = '';
+            document.getElementById('erro').classList.remove('show');
+            setTimeout(() => document.getElementById('senha').focus(), 100);
         }
         
         function fecharModal() {
             document.getElementById('modal-login').classList.remove('active');
             document.getElementById('erro').classList.remove('show');
-            document.getElementById('usuario').value = '';
             document.getElementById('senha').value = '';
         }
         
@@ -303,12 +300,10 @@
         }
         
         function login() {
-            const usuario = document.getElementById('usuario').value.trim();
             const senha = document.getElementById('senha').value;
             
             if (senha === SENHA_PADRAO) {
                 localStorage.setItem('asm_logado', 'true');
-                localStorage.setItem('asm_usuario', usuario || 'Profissional');
                 window.location.href = 'docs.html';
             } else {
                 document.getElementById('erro').classList.add('show');
@@ -317,16 +312,10 @@
             }
         }
         
-        // Enter para navegar
+        // Enter para logar
         document.getElementById('senha').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 login();
-            }
-        });
-        
-        document.getElementById('usuario').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('senha').focus();
             }
         });
     </script>
