@@ -1,0 +1,2263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e3a5f">
+    <title>ASM Docs - Sistema de Documentação Clínica</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --azul-marinho: #1e3a5f;
+            --dourado: #c9a227;
+            --cinza-claro: #f5f5f5;
+            --branco: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--azul-marinho) 0%, #2c4a6e 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        /* HEADER */
+        .header {
+            text-align: center;
+            color: var(--branco);
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: var(--dourado);
+        }
+        
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        
+        /* MENU DE ABAS */
+        .tabs-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            min-width: max-content;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .tab:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .tab.active {
+            background: var(--dourado);
+            color: var(--azul-marinho);
+        }
+        
+        /* CONTEÚDO DAS ABAS */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* CARDS DE FORMULÁRIO */
+        .form-card {
+            background: var(--branco);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        
+        .form-title {
+            color: var(--azul-marinho);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid var(--dourado);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--azul-marinho);
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--dourado);
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2);
+        }
+        
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .prof-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .prof-row-3 {
+            display: grid;
+            grid-template-columns: 2fr 1fr 2fr;
+            gap: 8px;
+        }
+        
+        /* BOTÕES MINIMALISTAS */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--azul-marinho), #2c4a6e);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+        
+        .btn-tool {
+            background: var(--cinza-claro);
+            color: var(--azul-marinho);
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+        
+        /* TOOLTIP DOS BOTÕES */
+        .btn-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-label {
+            font-size: 0.7rem;
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* EVOLUÇÃO - CADASTRO DE PACIENTES */
+        .pacientes-section {
+            background: var(--cinza-claro);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--dourado);
+        }
+        
+        .paciente-item {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .paciente-item:hover {
+            border-color: var(--dourado);
+            transform: translateX(5px);
+        }
+        
+        .paciente-item.selecionado {
+            border-color: var(--azul-marinho);
+            background: #e8f4f8;
+        }
+        
+        .paciente-info h4 {
+            color: var(--azul-marinho);
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+        }
+        
+        .paciente-info p {
+            color: #666;
+            font-size: 0.8rem;
+        }
+        
+        .paciente-acoes {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-mini {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* EVOLUÇÃO - BOXES */
+        .evolucao-box {
+            background: var(--cinza-claro);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--dourado);
+        }
+        
+        .evolucao-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .evolucao-title {
+            color: var(--azul-marinho);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .evolucao-numero {
+            background: var(--azul-marinho);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        .evolucao-data {
+            width: 120px;
+            padding: 5px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        
+        /* ASSINATURA */
+        .signature-area {
+            background: var(--branco);
+            border: 2px dashed var(--azul-marinho);
+            border-radius: 10px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .signature-pad {
+            width: 100%;
+            height: 120px;
+            border-radius: 10px;
+            touch-action: none;
+            display: block;
+        }
+        
+        .signature-label {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #999;
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+        
+        /* CHECKBOXES */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .checkbox-item input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--azul-marinho);
+        }
+        
+        .checkbox-item label {
+            font-size: 0.85rem;
+            color: #444;
+        }
+        
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            color: var(--azul-marinho);
+        }
+        
+        .btn-fechar {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+        }
+        
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.7rem;
+            margin-top: 30px;
+            padding: 20px;
+        }
+        
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 9999;
+            font-size: 0.85rem;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        @media (max-width: 600px) {
+            .prof-row, .prof-row-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                gap: 5px;
+            }
+            
+            .tab {
+                padding: 10px 15px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>🏥 ASM DOCS</h1>
+            <p>Sistema de Documentação Clínica • Dra. Andresa Augusto</p>
+        </div>
+        
+        <!-- MENU DE ABAS -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab active" onclick="abrirAba('avaliacao')">📋 Avaliação</button>
+                <button class="tab" onclick="abrirAba('evolucao')">📈 Evolução</button>
+                <button class="tab" onclick="abrirAba('alta')">✅ Alta</button>
+                <button class="tab" onclick="abrirAba('atestado')">📝 Atestado</button>
+                <button class="tab" onclick="abrirAba('contrato')">📄 Contrato</button>
+                <button class="tab" onclick="abrirAba('declaracao')">📃 Declaração</button>
+                <button class="tab" onclick="abrirAba('encaminhamento')">➡️ Encaminha</button>
+                <button class="tab" onclick="abrirAba('reembolso')">💰 Reembolso</button>
+                <button class="tab" onclick="abrirAba('tcle')">✓ TCLE</button>
+                <button class="tab" onclick="abrirAba('tcle-imagem')">📸 TCLE Img</button>
+                <button class="tab" onclick="abrirAba('teleatendimento')">💻 Tele</button>
+            </div>
+        </div>
+        
+        <!-- ABA: AVALIAÇÃO -->
+        <div id="avaliacao" class="tab-content active">
+            <div class="form-card">
+                <div class="form-title">👤 Dados do Profissional</div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Fisioterapeuta</label>
+                        <input type="text" class="form-input" id="av_fisio_nome" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CREFITO</label>
+                        <input type="text" class="form-input" id="av_fisio_crefito" placeholder="Nº do CREFITO">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">👤 Dados do Paciente</div>
+                <div class="prof-row-3">
+                    <div class="form-group">
+                        <label class="form-label">Nome Completo</label>
+                        <input type="text" class="form-input" id="av_paciente_nome" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Idade</label>
+                        <input type="number" class="form-input" id="av_idade" placeholder="Anos">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data Avaliação</label>
+                        <input type="date" class="form-input" id="av_data">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Profissão</label>
+                    <input type="text" class="form-input" id="av_profissao" placeholder="Profissão do paciente">
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📝 Queixa Principal</div>
+                <textarea class="form-textarea" id="av_queixa" placeholder="Descreva a queixa principal do paciente..."></textarea>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">🎯 Objetivos do Tratamento</div>
+                <textarea class="form-textarea" id="av_objetivos" placeholder="Objetivos terapêuticos estabelecidos..."></textarea>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">✍️ Assinatura Digital</div>
+                <div class="signature-area">
+                    <canvas id="av_canvas" class="signature-pad"></canvas>
+                    <span class="signature-label">Toque e arraste para assinar</span>
+                </div>
+                <div class="btn-group">
+                    <div class="btn-container">
+                        <button class="btn btn-tool" onclick="limparAssinatura('av')">🗑️</button>
+                        <span class="btn-label">Limpar</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="salvarAvaliacao()">💾</button>
+                    <span class="btn-label">Salvar</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" onclick="gerarPDF('avaliacao')">📄</button>
+                    <span class="btn-label">PDF</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-whatsapp" onclick="enviarWhatsApp('avaliacao')">💬</button>
+                    <span class="btn-label">WhatsApp</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ABA: EVOLUÇÃO (COM CADASTRO DE PACIENTES) -->
+        <div id="evolucao" class="tab-content">
+            <!-- CADASTRO DE PACIENTES -->
+            <div class="pacientes-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: var(--azul-marinho); font-size: 1rem;">👥 Pacientes Cadastrados</h3>
+                    <button class="btn btn-primary" onclick="abrirModalPaciente()" style="width: 40px; height: 40px; font-size: 1.2rem;">+</button>
+                </div>
+                <div id="lista-pacientes"></div>
+            </div>
+            
+            <!-- FORMULÁRIO DE EVOLUÇÃO -->
+            <div id="form-evolucao" style="display: none;">
+                <div class="form-card">
+                    <div class="form-title">📋 Evoluções do Paciente</div>
+                    <div id="evolucoes-container">
+                        <!-- 20 evoluções geradas via JS -->
+                    </div>
+                </div>
+                
+                <div class="form-card">
+                    <div class="form-title">✍️ Assinatura do Fisioterapeuta</div>
+                    <div class="signature-area">
+                        <canvas id="ev_canvas" class="signature-pad"></canvas>
+                        <span class="signature-label">Toque e arraste para assinar</span>
+                    </div>
+                    <div class="btn-group">
+                        <div class="btn-container">
+                            <button class="btn btn-tool" onclick="limparAssinatura('ev')">🗑️</button>
+                            <span class="btn-label">Limpar</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <div class="btn-container">
+                        <button class="btn btn-primary" onclick="salvarEvolucao()">💾</button>
+                        <span class="btn-label">Salvar</span>
+                    </div>
+                    <div class="btn-container">
+                        <button class="btn btn-success" onclick="gerarPDF('evolucao')">📄</button>
+                        <span class="btn-label">PDF</span>
+                    </div>
+                    <div class="btn-container">
+                        <button class="btn btn-whatsapp" onclick="enviarWhatsAppEvolucao()">💬</button>
+                        <span class="btn-label">WhatsApp</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="msg-selecione" class="form-card" style="text-align: center; color: #666;">
+                <p>Selecione um paciente acima para visualizar e registrar as evoluções</p>
+            </div>
+        </div>
+        
+        <!-- MODAL: CADASTRAR PACIENTE -->
+        <div id="modal-paciente" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Cadastrar Novo Paciente</h3>
+                    <button class="btn-fechar" onclick="fecharModal()">×</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nome Completo</label>
+                    <input type="text" class="form-input" id="novo_paciente_nome" placeholder="Nome do paciente">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">WhatsApp</label>
+                    <input type="text" class="form-input" id="novo_paciente_whatsapp" placeholder="(00) 00000-0000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">CPF (opcional)</label>
+                    <input type="text" class="form-input" id="novo_paciente_cpf" placeholder="000.000.000-00">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="cadastrarPaciente()" style="width: 50px; height: 50px;">✓</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ABA: ALTA -->
+        <div id="alta" class="tab-content">
+            <div class="form-card">
+                <div class="form-title">👤 Dados do Profissional</div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Fisioterapeuta</label>
+                        <input type="text" class="form-input" id="al_fisio_nome" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CREFITO</label>
+                        <input type="text" class="form-input" id="al_fisio_crefito" placeholder="Nº do CREFITO">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">👤 Dados do Paciente</div>
+                <div class="form-group">
+                    <label class="form-label">Nome Completo</label>
+                    <input type="text" class="form-input" id="al_paciente_nome" placeholder="Nome completo">
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">CPF</label>
+                        <input type="text" class="form-input" id="al_paciente_cpf" placeholder="000.000.000-00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Período de Atendimento</label>
+                        <input type="text" class="form-input" id="al_periodo" placeholder="Ex: 01/01/2024 - 15/02/2024">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📝 Diagnóstico Fisioterapêutico</div>
+                <textarea class="form-textarea" id="al_diag_fisio" placeholder="Descreva o diagnóstico fisioterapêutico..."></textarea>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">💼 Condutas Realizadas</div>
+                <textarea class="form-textarea" id="al_condutas" placeholder="Descreva as condutas realizadas durante o tratamento..."></textarea>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📈 Evolução / Resultados</div>
+                <textarea class="form-textarea" id="al_evolucao" placeholder="Descreva a evolução do paciente..."></textarea>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">🚪 Motivo da Alta</div>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="al_obj_alcancados">
+                        <label>Objetivos terapêuticos alcançados</label>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="al_alta_solicitacao">
+                        <label>Alta por solicitação</label>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="al_encaminhamento">
+                        <label>Encaminhamento</label>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="al_abandono">
+                        <label>Abandono/Descontinuidade</label>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">✍️ Assinatura Digital</div>
+                <div class="signature-area">
+                    <canvas id="al_canvas" class="signature-pad"></canvas>
+                    <span class="signature-label">Toque e arraste para assinar</span>
+                </div>
+                <div class="btn-group">
+                    <div class="btn-container">
+                        <button class="btn btn-tool" onclick="limparAssinatura('al')">🗑️</button>
+                        <span class="btn-label">Limpar</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="salvarAlta()">💾</button>
+                    <span class="btn-label">Salvar</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" onclick="gerarPDF('alta')">📄</button>
+                    <span class="btn-label">PDF</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-whatsapp" onclick="enviarWhatsApp('alta')">💬</button>
+                    <span class="btn-label">WhatsApp</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ABA: ATESTADO -->
+        <div id="atestado" class="tab-content">
+            <div class="form-card">
+                <div class="form-title">👤 Dados do Profissional</div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Fisioterapeuta</label>
+                        <input type="text" class="form-input" id="at_fisio_nome" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CREFITO</label>
+                        <input type="text" class="form-input" id="at_fisio_crefito" placeholder="Nº do CREFITO">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">👤 Dados do Paciente</div>
+                <div class="form-group">
+                    <label class="form-label">Nome Completo</label>
+                    <input type="text" class="form-input" id="at_paciente_nome" placeholder="Nome completo do paciente">
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Data do Atendimento</label>
+                        <input type="date" class="form-input" id="at_data_atendimento">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Horário Início</label>
+                        <input type="time" class="form-input" id="at_hora_inicio">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Horário Término</label>
+                    <input type="time" class="form-input" id="at_hora_fim">
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📝 Necessidade Médica</div>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="at_apenas_comparecimento">
+                        <label>Apenas comparecimento</label>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="at_afastamento">
+                        <label>Afastamento de <input type="number" id="at_dias_afastamento" style="width: 60px; padding: 3px; border: 1px solid #ddd; border-radius: 5px;"> dias</label>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="at_restricao">
+                        <label>Restrição funcional</label>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Detalhamento (se necessário)</label>
+                    <textarea class="form-textarea" id="at_detalhamento" placeholder="Detalhes adicionais..."></textarea>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">✍️ Assinatura Digital</div>
+                <div class="signature-area">
+                    <canvas id="at_canvas" class="signature-pad"></canvas>
+                    <span class="signature-label">Toque e arraste para assinar</span>
+                </div>
+                <div class="btn-group">
+                    <div class="btn-container">
+                        <button class="btn btn-tool" onclick="limparAssinatura('at')">🗑️</button>
+                        <span class="btn-label">Limpar</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="salvarAtestado()">💾</button>
+                    <span class="btn-label">Salvar</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" onclick="gerarPDF('atestado')">📄</button>
+                    <span class="btn-label">PDF</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-whatsapp" onclick="enviarWhatsApp('atestado')">💬</button>
+                    <span class="btn-label">WhatsApp</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ABA: CONTRATO -->
+        <div id="contrato" class="tab-content">
+            <div class="form-card">
+                <div class="form-title">👤 Profissional</div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Nome Completo</label>
+                        <input type="text" class="form-input" id="ct_profissional" placeholder="Nome do profissional">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CREFITO</label>
+                        <input type="text" class="form-input" id="ct_crefito" placeholder="Nº do CREFITO">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">👤 Contratante (Paciente/Responsável)</div>
+                <div class="form-group">
+                    <label class="form-label">Nome</label>
+                    <input type="text" class="form-input" id="ct_contratante" placeholder="Nome completo">
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">CPF</label>
+                        <input type="text" class="form-input" id="ct_cpf" placeholder="000.000.000-00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" class="form-input" id="ct_telefone" placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">💼 Condições do Contrato</div>
+                <div class="form-group">
+                    <label class="form-label">Valor por sessão</label>
+                    <input type="text" class="form-input" id="ct_valor_sessao" placeholder="R$ 0,00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Modalidade</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="ct_modalidade_clinica">
+                            <label>Clínica/Consultório</label>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="ct_modalidade_domiciliar">
+                            <label>Domiciliar</label>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="ct_modalidade_online">
+                            <label>Online</label>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">✍️ Assinaturas</div>
+                <div class="prof-row">
+                    <div>
+                        <label class="form-label">Contratante</label>
+                        <div class="signature-area">
+                            <canvas id="ct_canvas_paciente" class="signature-pad"></canvas>
+                            <span class="signature-label">Assinar</span>
+                        </div>
+                        <div class="btn-group">
+                            <div class="btn-container">
+                                <button class="btn btn-tool" onclick="limparAssinatura('ct_paciente')">🗑️</button>
+                                <span class="btn-label">Limpar</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Fisioterapeuta</label>
+                        <div class="signature-area">
+                            <canvas id="ct_canvas_prof" class="signature-pad"></canvas>
+                            <span class="signature-label">Assinar</span>
+                        </div>
+                        <div class="btn-group">
+                            <div class="btn-container">
+                                <button class="btn btn-tool" onclick="limparAssinatura('ct_prof')">🗑️</button>
+                                <span class="btn-label">Limpar</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="salvarContrato()">💾</button>
+                    <span class="btn-label">Salvar</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" onclick="gerarPDF('contrato')">📄</button>
+                    <span class="btn-label">PDF</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-whatsapp" onclick="enviarWhatsApp('contrato')">💬</button>
+                    <span class="btn-label">WhatsApp</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ABA: DECLARAÇÃO -->
+        <div id="declaracao" class="tab-content">
+            <div class="form-card">
+                <div class="form-title">👤 Identificação</div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Fisioterapeuta</label>
+                        <input type="text" class="form-input" id="dc_fisio_nome" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CREFITO</label>
+                        <input type="text" class="form-input" id="dc_fisio_crefito" placeholder="Nº do CREFITO">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📝 Declaração</div>
+                <div style="background: var(--cinza-claro); padding: 15px; border-radius: 10px; line-height: 1.8; font-size: 0.9rem;">
+                    DECLARO, para os devidos fins, que o(a) Sr.(a)
+                    <input type="text" id="dc_paciente_nome" class="form-input" placeholder="Nome completo" style="margin: 5px 0; display: inline-block; width: 100%;">
+                    CPF: <input type="text" id="dc_paciente_cpf" class="form-input" placeholder="000.000.000-00" style="width: 60%; display: inline-block;">,
+                    compareceu a atendimento/avaliação fisioterapêutica na data
+                    <input type="date" id="dc_data_atend" class="form-input" style="width: 45%; display: inline-block;">.
+                </div>
+                <div class="prof-row" style="margin-top: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Local</label>
+                        <input type="text" class="form-input" id="dc_local" placeholder="Cidade/UF">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data do Documento</label>
+                        <input type="date" class="form-input" id="dc_data_doc">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">✍️ Assinatura</div>
+                <div class="signature-area">
+                    <canvas id="dc_canvas" class="signature-pad"></canvas>
+                    <span class="signature-label">Toque e arraste para assinar</span>
+                </div>
+                <div class="btn-group">
+                    <div class="btn-container">
+                        <button class="btn btn-tool" onclick="limparAssinatura('dc')">🗑️</button>
+                        <span class="btn-label">Limpar</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="salvarDeclaracao()">💾</button>
+                    <span class="btn-label">Salvar</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" onclick="gerarPDF('declaracao')">📄</button>
+                    <span class="btn-label">PDF</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-whatsapp" onclick="enviarWhatsApp('declaracao')">💬</button>
+                    <span class="btn-label">WhatsApp</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ABA: ENCAMINHAMENTO -->
+        <div id="encaminhamento" class="tab-content">
+            <div class="form-card">
+                <div class="form-title">👤 Identificação</div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Fisioterapeuta</label>
+                        <input type="text" class="form-input" id="en_fisio_nome" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CREFITO</label>
+                        <input type="text" class="form-input" id="en_fisio_crefito" placeholder="Nº do CREFITO">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">👤 Paciente</div>
+                <div class="form-group">
+                    <label class="form-label">Nome</label>
+                    <input type="text" class="form-input" id="en_paciente_nome" placeholder="Nome completo">
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">CPF</label>
+                        <input type="text" class="form-input" id="en_paciente_cpf" placeholder="000.000.000-00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data Nasc.</label>
+                        <input type="date" class="form-input" id="en_paciente_nasc">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📋 Destinatário</div>
+                <div class="form-group">
+                    <label class="form-label">Profissional/Serviço</label>
+                    <input type="text" class="form-input" id="en_dest_profissional" placeholder="Nome do profissional ou serviço">
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Especialidade</label>
+                        <input type="text" class="form-input" id="en_dest_especialidade" placeholder="Especialidade">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contato</label>
+                        <input type="text" class="form-input" id="en_dest_contato" placeholder="Telefone/E-mail">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📝 Síntese Clínica</div>
+                <div class="form-group">
+                    <label class="form-label">Queixa principal</label>
+                    <textarea class="form-textarea" id="en_queixa" placeholder="Descreva a queixa principal..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Motivo do Encaminhamento</label>
+                    <textarea class="form-textarea" id="en_motivo" placeholder="Descreva o motivo..."></textarea>
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Local</label>
+                        <input type="text" class="form-input" id="en_local" placeholder="Cidade/UF">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data</label>
+                        <input type="date" class="form-input" id="en_data">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">✍️ Assinatura</div>
+                <div class="signature-area">
+                    <canvas id="en_canvas" class="signature-pad"></canvas>
+                    <span class="signature-label">Toque e arraste para assinar</span>
+                </div>
+                <div class="btn-group">
+                    <div class="btn-container">
+                        <button class="btn btn-tool" onclick="limparAssinatura('en')">🗑️</button>
+                        <span class="btn-label">Limpar</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="salvarEncaminhamento()">💾</button>
+                    <span class="btn-label">Salvar</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" onclick="gerarPDF('encaminhamento')">📄</button>
+                    <span class="btn-label">PDF</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-whatsapp" onclick="enviarWhatsApp('encaminhamento')">💬</button>
+                    <span class="btn-label">WhatsApp</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ABA: REEMBOLSO -->
+        <div id="reembolso" class="tab-content">
+            <div class="form-card">
+                <div class="form-title">👤 Identificação</div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Fisioterapeuta</label>
+                        <input type="text" class="form-input" id="rb_fisio_nome" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CREFITO</label>
+                        <input type="text" class="form-input" id="rb_fisio_crefito" placeholder="Nº do CREFITO">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">👤 Paciente</div>
+                <div class="form-group">
+                    <label class="form-label">Nome</label>
+                    <input type="text" class="form-input" id="rb_paciente_nome" placeholder="Nome completo">
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">CPF</label>
+                        <input type="text" class="form-input" id="rb_paciente_cpf" placeholder="000.000.000-00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Convênio</label>
+                        <input type="text" class="form-input" id="rb_convenio" placeholder="Nome do convênio">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📋 Informações Clínicas</div>
+                <div class="form-group">
+                    <label class="form-label">Diagnóstico Médico / CID</label>
+                    <input type="text" class="form-input" id="rb_diag_medico" placeholder="CID e descrição">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Diagnóstico Fisioterapêutico</label>
+                    <textarea class="form-textarea" id="rb_diag_fisio" placeholder="Descreva o diagnóstico..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Procedimentos Realizados</label>
+                    <textarea class="form-textarea" id="rb_procedimentos" placeholder="Descreva os procedimentos..."></textarea>
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Qtd. Sessões</label>
+                        <input type="number" class="form-input" id="rb_qtd_sessoes" placeholder="00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Período</label>
+                        <input type="text" class="form-input" id="rb_periodo" placeholder="DD/MM/AAAA a DD/MM/AAAA">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">✍️ Assinatura</div>
+                <div class="signature-area">
+                    <canvas id="rb_canvas" class="signature-pad"></canvas>
+                    <span class="signature-label">Toque e arraste para assinar</span>
+                </div>
+                <div class="btn-group">
+                    <div class="btn-container">
+                        <button class="btn btn-tool" onclick="limparAssinatura('rb')">🗑️</button>
+                        <span class="btn-label">Limpar</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="salvarReembolso()">💾</button>
+                    <span class="btn-label">Salvar</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" onclick="gerarPDF('reembolso')">📄</button>
+                    <span class="btn-label">PDF</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-whatsapp" onclick="enviarWhatsApp('reembolso')">💬</button>
+                    <span class="btn-label">WhatsApp</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ABA: TCLE -->
+        <div id="tcle" class="tab-content">
+            <div class="form-card">
+                <div class="form-title">👤 Identificação</div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Paciente</label>
+                        <input type="text" class="form-input" id="tc_paciente" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CPF</label>
+                        <input type="text" class="form-input" id="tc_cpf" placeholder="000.000.000-00">
+                    </div>
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Fisioterapeuta</label>
+                        <input type="text" class="form-input" id="tc_fisio" value="Dra. Andresa Augusto">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CREFITO</label>
+                        <input type="text" class="form-input" id="tc_crefito" placeholder="Nº do CREFITO">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📋 Termo de Consentimento</div>
+                <div style="background: var(--cinza-claro); padding: 15px; border-radius: 10px; font-size: 0.85rem; line-height: 1.6;">
+                    <p style="margin-bottom: 10px;"><strong>TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO</strong></p>
+                    <p>Eu, <input type="text" id="tc_nome_autorizacao" class="form-input" placeholder="Nome completo" style="display: inline-block; width: 70%;">,</p>
+                    <p>CPF: <input type="text" id="tc_cpf_autorizacao" class="form-input" placeholder="000.000.000-00" style="display: inline-block; width: 50%;">,</p>
+                    <p>declaro que fui devidamente informado(a) sobre os procedimentos fisioterapêuticos a serem realizados, seus benefícios, riscos e alternativas, e concordo em participar do tratamento.</p>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label class="form-label">Local e Data</label>
+                    <input type="text" class="form-input" id="tc_local_data" placeholder="Cidade, DD/MM/AAAA">
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">✍️ Assinatura do Paciente</div>
+                <div class="signature-area">
+                    <canvas id="tc_canvas" class="signature-pad"></canvas>
+                    <span class="signature-label">Toque e arraste para assinar</span>
+                </div>
+                <div class="btn-group">
+                    <div class="btn-container">
+                        <button class="btn btn-tool" onclick="limparAssinatura('tc')">🗑️</button>
+                        <span class="btn-label">Limpar</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="salvarTCLE()">💾</button>
+                    <span class="btn-label">Salvar</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" onclick="gerarPDF('tcle')">📄</button>
+                    <span class="btn-label">PDF</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-whatsapp" onclick="enviarWhatsApp('tcle')">💬</button>
+                    <span class="btn-label">WhatsApp</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ABA: TCLE IMAGEM -->
+        <div id="tcle-imagem" class="tab-content">
+            <div class="form-card">
+                <div class="form-title">👤 Identificação</div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Fisioterapeuta</label>
+                        <input type="text" class="form-input" id="ti_profissional" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CREFITO</label>
+                        <input type="text" class="form-input" id="ti_crefito" placeholder="Número">
+                    </div>
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Paciente</label>
+                        <input type="text" class="form-input" id="ti_nome" placeholder="Nome do paciente">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CPF</label>
+                        <input type="text" class="form-input" id="ti_cpf" placeholder="000.000.000-00">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📋 Autorização</div>
+                <div style="background: var(--cinza-claro); padding: 15px; border-radius: 10px; font-size: 0.85rem;">
+                    <p style="margin-bottom: 10px;"><strong>CONSENTIMENTO PARA CAPTAÇÃO E USO DE IMAGEM</strong></p>
+                    <p>Eu, <input type="text" id="ti_nome_autorizacao" class="form-input" placeholder="Nome completo" style="width: 100%; margin: 5px 0;">,</p>
+                    <p>autorizo a captação e utilização de minha imagem/voz para:</p>
+                    <div class="checkbox-group" style="margin-top: 10px;">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="ti_registro_clinico">
+                            <label>Registro clínico em prontuário</label>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="ti_uso_educativo">
+                            <label>Uso educativo/científico</label>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="ti_divulgacao">
+                            <label>Divulgação profissional em mídias</label>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label class="form-label">Local e Data</label>
+                    <input type="text" class="form-input" id="ti_local_data" placeholder="Cidade, DD/MM/AAAA">
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">✍️ Assinaturas</div>
+                <div class="prof-row">
+                    <div>
+                        <label class="form-label">Paciente/Responsável</label>
+                        <div class="signature-area">
+                            <canvas id="ti_canvas_paciente" class="signature-pad"></canvas>
+                            <span class="signature-label">Assinar</span>
+                        </div>
+                        <div class="btn-group">
+                            <div class="btn-container">
+                                <button class="btn btn-tool" onclick="limparAssinatura('ti_paciente')">🗑️</button>
+                                <span class="btn-label">Limpar</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Fisioterapeuta</label>
+                        <div class="signature-area">
+                            <canvas id="ti_canvas_prof" class="signature-pad"></canvas>
+                            <span class="signature-label">Assinar</span>
+                        </div>
+                        <div class="btn-group">
+                            <div class="btn-container">
+                                <button class="btn btn-tool" onclick="limparAssinatura('ti_prof')">🗑️</button>
+                                <span class="btn-label">Limpar</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="salvarTCLEImagem()">💾</button>
+                    <span class="btn-label">Salvar</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" onclick="gerarPDF('tcle-imagem')">📄</button>
+                    <span class="btn-label">PDF</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-whatsapp" onclick="enviarWhatsApp('tcle-imagem')">💬</button>
+                    <span class="btn-label">WhatsApp</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ABA: TELEATENDIMENTO -->
+        <div id="teleatendimento" class="tab-content">
+            <div class="form-card">
+                <div class="form-title">👤 Identificação das Partes</div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Paciente/Responsável</label>
+                        <input type="text" class="form-input" id="tl_paciente" placeholder="Nome completo do paciente">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CPF</label>
+                        <input type="text" class="form-input" id="tl_cpf" placeholder="000.000.000-00">
+                    </div>
+                </div>
+                <div class="prof-row">
+                    <div class="form-group">
+                        <label class="form-label">Fisioterapeuta</label>
+                        <input type="text" class="form-input" id="tl_fisio" value="Dra. Andresa Augusto">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CREFITO</label>
+                        <input type="text" class="form-input" id="tl_crefito" placeholder="Número do CREFITO">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">📋 Termo de Consentimento</div>
+                <div style="background: var(--cinza-claro); padding: 15px; border-radius: 10px; font-size: 0.85rem; line-height: 1.6;">
+                    <p style="margin-bottom: 10px;"><strong>TERMO DE CONSENTIMENTO PARA TELEATENDIMENTO FISIOTERAPÊUTICO</strong></p>
+                    <p><strong>1) IDENTIFICAÇÃO DAS PARTES</strong></p>
+                    <p>Paciente: <span id="tl_preview_paciente">____________________</span></p>
+                    <p>CPF: <span id="tl_preview_cpf">____________________</span></p>
+                    <p>Fisioterapeuta: <span id="tl_preview_fisio">Dra. Andresa Augusto</span></p>
+                    <p style="margin-top: 10px;"><strong>2) OBJETO DO CONSENTIMENTO</strong></p>
+                    <p>Consentimento para realização de atendimento fisioterapêutico na modalidade de teleatendimento.</p>
+                    <p style="margin-top: 10px;"><strong>3) ESCLARECIMENTOS E LIMITAÇÕES</strong></p>
+                    <p>O atendimento remoto possui limitações técnicas e não substitui integralmente o atendimento presencial.</p>
+                    <p style="margin-top: 10px;"><strong>4) DECLARAÇÃO DE CONSENTIMENTO</strong></p>
+                    <p>Declaro que estou ciente e autorizo, de forma livre e esclarecida, a realização do teleatendimento fisioterapêutico.</p>
+                </div>
+                <div class="prof-row" style="margin-top: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Local</label>
+                        <input type="text" class="form-input" id="tl_local" placeholder="Cidade/UF">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data</label>
+                        <input type="date" class="form-input" id="tl_data">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-title">✍️ Assinatura do Paciente</div>
+                <div class="signature-area">
+                    <canvas id="tl_canvas" class="signature-pad"></canvas>
+                    <span class="signature-label">Toque e arraste para assinar</span>
+                </div>
+                <div class="btn-group">
+                    <div class="btn-container">
+                        <button class="btn btn-tool" onclick="limparAssinatura('tl')">🗑️</button>
+                        <span class="btn-label">Limpar</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="salvarTeleatendimento()">💾</button>
+                    <span class="btn-label">Salvar</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-success" onclick="gerarPDF('teleatendimento')">📄</button>
+                    <span class="btn-label">PDF</span>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-whatsapp" onclick="enviarWhatsApp('teleatendimento')">💬</button>
+                    <span class="btn-label">WhatsApp</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>ASM Docs - Sistema de Documentação Clínica</p>
+            <p>© Dra. Andresa Augusto Nascimento - Proibida reprodução sem autorização</p>
+        </div>
+    </div>
+    
+    <!-- TOAST -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ==========================================
+        // SISTEMA DE ABAS
+        // ==========================================
+        function abrirAba(abaId) {
+            // Esconder todas as abas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remover active de todos os botões
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar aba selecionada
+            document.getElementById(abaId).classList.add('active');
+            
+            // Adicionar active ao botão clicado
+            event.target.classList.add('active');
+            
+            // Inicializar canvas da aba se necessário
+            setTimeout(() => {
+                inicializarCanvasAba(abaId);
+            }, 100);
+        }
+        
+        // ==========================================
+        // SISTEMA DE CANVAS/ASSINATURA
+        // ==========================================
+        const canvases = {};
+        const ctxs = {};
+        const isDrawing = {};
+        const hasSignature = {};
+        
+        function inicializarCanvas(id) {
+            const canvas = document.getElementById(id);
+            if (!canvas) return;
+            
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width - 4;
+            canvas.height = 120;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            canvases[id] = canvas;
+            ctxs[id] = ctx;
+            isDrawing[id] = false;
+            hasSignature[id] = false;
+            
+            // Eventos mouse
+            canvas.addEventListener('mousedown', (e) => startDrawing(e, id));
+            canvas.addEventListener('mousemove', (e) => draw(e, id));
+            canvas.addEventListener('mouseup', () => stopDrawing(id));
+            canvas.addEventListener('mouseout', () => stopDrawing(id));
+            
+            // Eventos touch
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startDrawing(e, id);
+            }, {passive: false});
+            
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                draw(e, id);
+            }, {passive: false});
+            
+            canvas.addEventListener('touchend', () => stopDrawing(id));
+        }
+        
+        function getPos(e, canvas) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+        
+        function startDrawing(e, id) {
+            isDrawing[id] = true;
+            const pos = getPos(e, canvases[id]);
+            ctxs[id].beginPath();
+            ctxs[id].moveTo(pos.x, pos.y);
+            
+            // Esconder label
+            const label = canvases[id].parentElement.querySelector('.signature-label');
+            if (label) label.style.display = 'none';
+        }
+        
+        function draw(e, id) {
+            if (!isDrawing[id]) return;
+            const pos = getPos(e, canvases[id]);
+            ctxs[id].lineTo(pos.x, pos.y);
+            ctxs[id].stroke();
+            hasSignature[id] = true;
+        }
+        
+        function stopDrawing(id) {
+            isDrawing[id] = false;
+        }
+        
+        function limparAssinatura(prefixo) {
+            const ids = {
+                'av': 'av_canvas',
+                'ev': 'ev_canvas',
+                'al': 'al_canvas',
+                'at': 'at_canvas',
+                'ct_paciente': 'ct_canvas_paciente',
+                'ct_prof': 'ct_canvas_prof',
+                'dc': 'dc_canvas',
+                'en': 'en_canvas',
+                'rb': 'rb_canvas',
+                'tc': 'tc_canvas',
+                'ti_paciente': 'ti_canvas_paciente',
+                'ti_prof': 'ti_canvas_prof',
+                'tl': 'tl_canvas'
+            };
+            
+            const id = ids[prefixo];
+            if (id && ctxs[id]) {
+                ctxs[id].clearRect(0, 0, canvases[id].width, canvases[id].height);
+                hasSignature[id] = false;
+                const label = canvases[id].parentElement.querySelector('.signature-label');
+                if (label) label.style.display = 'block';
+            }
+        }
+        
+        function inicializarCanvasAba(abaId) {
+            const mapaCanvas = {
+                'avaliacao': ['av_canvas'],
+                'evolucao': ['ev_canvas'],
+                'alta': ['al_canvas'],
+                'atestado': ['at_canvas'],
+                'contrato': ['ct_canvas_paciente', 'ct_canvas_prof'],
+                'declaracao': ['dc_canvas'],
+                'encaminhamento': ['en_canvas'],
+                'reembolso': ['rb_canvas'],
+                'tcle': ['tc_canvas'],
+                'tcle-imagem': ['ti_canvas_paciente', 'ti_canvas_prof'],
+                'teleatendimento': ['tl_canvas']
+            };
+            
+            const ids = mapaCanvas[abaId] || [];
+            ids.forEach(id => {
+                if (!canvases[id]) {
+                    inicializarCanvas(id);
+                }
+            });
+        }
+        
+        // ==========================================
+        // SISTEMA DE PACIENTES (EVOLUÇÃO)
+        // ==========================================
+        let pacienteSelecionado = null;
+        
+        function carregarPacientes() {
+            const pacientes = JSON.parse(localStorage.getItem('asm_pacientes') || '[]');
+            const container = document.getElementById('lista-pacientes');
+            
+            if (pacientes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Nenhum paciente cadastrado. Clique no + para adicionar.</p>';
+                return;
+            }
+            
+            container.innerHTML = pacientes.map((p, index) => `
+                <div class="paciente-item ${pacienteSelecionado === index ? 'selecionado' : ''}" onclick="selecionarPaciente(${index})">
+                    <div class="paciente-info">
+                        <h4>${p.nome}</h4>
+                        <p>📱 ${p.whatsapp || 'Sem WhatsApp'} | CPF: ${p.cpf || 'Não informado'}</p>
+                    </div>
+                    <div class="paciente-acoes">
+                        <button class="btn-mini btn-danger" onclick="event.stopPropagation(); excluirPaciente(${index})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function selecionarPaciente(index) {
+            pacienteSelecionado = index;
+            carregarPacientes();
+            
+            const pacientes = JSON.parse(localStorage.getItem('asm_pacientes') || '[]');
+            const paciente = pacientes[index];
+            
+            // Mostrar formulário de evolução
+            document.getElementById('form-evolucao').style.display = 'block';
+            document.getElementById('msg-selecione').style.display = 'none';
+            
+            // Carregar evoluções do paciente
+            carregarEvolucoesPaciente(paciente.nome);
+            
+            mostrarToast(`✅ Paciente ${paciente.nome} selecionado`);
+        }
+        
+        function carregarEvolucoesPaciente(nomePaciente) {
+            const dados = JSON.parse(localStorage.getItem(`evolucoes_${nomePaciente}`) || '{}');
+            
+            for (let i = 1; i <= 20; i++) {
+                const evolucao = dados.evolucoes?.find(e => e.numero === i);
+                document.getElementById(`data_evol${i}`).value = evolucao?.data || '';
+                document.getElementById(`evol${i}`).value = evolucao?.texto || '';
+            }
+        }
+        
+        function abrirModalPaciente() {
+            document.getElementById('modal-paciente').classList.add('active');
+        }
+        
+        function fecharModal() {
+            document.getElementById('modal-paciente').classList.remove('active');
+            document.getElementById('novo_paciente_nome').value = '';
+            document.getElementById('novo_paciente_whatsapp').value = '';
+            document.getElementById('novo_paciente_cpf').value = '';
+        }
+        
+        function cadastrarPaciente() {
+            const nome = document.getElementById('novo_paciente_nome').value;
+            const whatsapp = document.getElementById('novo_paciente_whatsapp').value;
+            const cpf = document.getElementById('novo_paciente_cpf').value;
+            
+            if (!nome) {
+                mostrarToast('⚠️ Informe o nome do paciente');
+                return;
+            }
+            
+            const pacientes = JSON.parse(localStorage.getItem('asm_pacientes') || '[]');
+            pacientes.push({ nome, whatsapp, cpf, dataCadastro: new Date().toISOString() });
+            localStorage.setItem('asm_pacientes', JSON.stringify(pacientes));
+            
+            carregarPacientes();
+            fecharModal();
+            mostrarToast('✅ Paciente cadastrado com sucesso!');
+        }
+        
+        function excluirPaciente(index) {
+            if (!confirm('Deseja realmente excluir este paciente?')) return;
+            
+            const pacientes = JSON.parse(localStorage.getItem('asm_pacientes') || '[]');
+            const nome = pacientes[index].nome;
+            
+            pacientes.splice(index, 1);
+            localStorage.setItem('asm_pacientes', JSON.stringify(pacientes));
+            
+            // Limpar evoluções
+            localStorage.removeItem(`evolucoes_${nome}`);
+            
+            if (pacienteSelecionado === index) {
+                pacienteSelecionado = null;
+                document.getElementById('form-evolucao').style.display = 'none';
+                document.getElementById('msg-selecione').style.display = 'block';
+            }
+            
+            carregarPacientes();
+            mostrarToast('✅ Paciente excluído');
+        }
+        
+        // Gerar 20 campos de evolução
+        function gerarCamposEvolucao() {
+            const container = document.getElementById('evolucoes-container');
+            let html = '';
+            
+            for (let i = 1; i <= 20; i++) {
+                html += `
+                    <div class="evolucao-box">
+                        <div class="evolucao-header">
+                            <div class="evolucao-title">
+                                <span class="evolucao-numero">${i}</span>
+                                <span>Evolução ${i}</span>
+                            </div>
+                            <input type="date" class="evolucao-data" id="data_evol${i}">
+                        </div>
+                        <textarea class="form-textarea" id="evol${i}" placeholder="Descreva a evolução do atendimento..." rows="3"></textarea>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // ==========================================
+        // FUNÇÕES DE SALVAR
+        // ==========================================
+        function salvarAvaliacao() {
+            const dados = {
+                fisio_nome: document.getElementById('av_fisio_nome').value,
+                fisio_crefito: document.getElementById('av_fisio_crefito').value,
+                paciente_nome: document.getElementById('av_paciente_nome').value,
+                idade: document.getElementById('av_idade').value,
+                data: document.getElementById('av_data').value,
+                profissao: document.getElementById('av_profissao').value,
+                queixa: document.getElementById('av_queixa').value,
+                objetivos: document.getElementById('av_objetivos').value,
+                assinatura: hasSignature['av_canvas'] ? canvases['av_canvas'].toDataURL() : null
+            };
+            
+            localStorage.setItem('avaliacao_' + dados.paciente_nome, JSON.stringify(dados));
+            mostrarToast('✅ Avaliação salva com sucesso!');
+        }
+        
+        function salvarEvolucao() {
+            if (pacienteSelecionado === null) {
+                mostrarToast('⚠️ Selecione um paciente primeiro');
+                return;
+            }
+            
+            const pacientes = JSON.parse(localStorage.getItem('asm_pacientes') || '[]');
+            const nomePaciente = pacientes[pacienteSelecionado].nome;
+            
+            const evolucoes = [];
+            for (let i = 1; i <= 20; i++) {
+                const data = document.getElementById(`data_evol${i}`).value;
+                const texto = document.getElementById(`evol${i}`).value;
+                if (data || texto) {
+                    evolucoes.push({ numero: i, data, texto });
+                }
+            }
+            
+            const dados = {
+                paciente: nomePaciente,
+                evolucoes: evolucoes,
+                assinatura: hasSignature['ev_canvas'] ? canvases['ev_canvas'].toDataURL() : null,
+                dataAtualizacao: new Date().toISOString()
+            };
+            
+            localStorage.setItem(`evolucoes_${nomePaciente}`, JSON.stringify(dados));
+            mostrarToast('✅ Evoluções salvas com sucesso!');
+        }
+        
+        function salvarAlta() {
+            const dados = {
+                fisio_nome: document.getElementById('al_fisio_nome').value,
+                fisio_crefito: document.getElementById('al_fisio_crefito').value,
+                paciente_nome: document.getElementById('al_paciente_nome').value,
+                paciente_cpf: document.getElementById('al_paciente_cpf').value,
+                periodo: document.getElementById('al_periodo').value,
+                diag_fisio: document.getElementById('al_diag_fisio').value,
+                condutas: document.getElementById('al_condutas').value,
+                evolucao: document.getElementById('al_evolucao').value,
+                obj_alcancados: document.getElementById('al_obj_alcancados').checked,
+                alta_solicitacao: document.getElementById('al_alta_solicitacao').checked,
+                encaminhamento: document.getElementById('al_encaminhamento').checked,
+                abandono: document.getElementById('al_abandono').checked,
+                assinatura: hasSignature['al_canvas'] ? canvases['al_canvas'].toDataURL() : null
+            };
+            
+            localStorage.setItem('alta_' + dados.paciente_nome, JSON.stringify(dados));
+            mostrarToast('✅ Alta salva com sucesso!');
+        }
+        
+        function salvarAtestado() {
+            const dados = {
+                fisio_nome: document.getElementById('at_fisio_nome').value,
+                fisio_crefito: document.getElementById('at_fisio_crefito').value,
+                paciente_nome: document.getElementById('at_paciente_nome').value,
+                data_atendimento: document.getElementById('at_data_atendimento').value,
+                hora_inicio: document.getElementById('at_hora_inicio').value,
+                hora_fim: document.getElementById('at_hora_fim').value,
+                apenas_comparecimento: document.getElementById('at_apenas_comparecimento').checked,
+                afastamento: document.getElementById('at_afastamento').checked,
+                dias_afastamento: document.getElementById('at_dias_afastamento').value,
+                restricao: document.getElementById('at_restricao').checked,
+                detalhamento: document.getElementById('at_detalhamento').value,
+                assinatura: hasSignature['at_canvas'] ? canvases['at_canvas'].toDataURL() : null
+            };
+            
+            localStorage.setItem('atestado_' + dados.paciente_nome, JSON.stringify(dados));
+            mostrarToast('✅ Atestado salvo com sucesso!');
+        }
+        
+        function salvarContrato() {
+            const dados = {
+                profissional: document.getElementById('ct_profissional').value,
+                crefito: document.getElementById('ct_crefito').value,
+                contratante: document.getElementById('ct_contratante').value,
+                cpf: document.getElementById('ct_cpf').value,
+                telefone: document.getElementById('ct_telefone').value,
+                valor_sessao: document.getElementById('ct_valor_sessao').value,
+                modalidade_clinica: document.getElementById('ct_modalidade_clinica').checked,
+                modalidade_domiciliar: document.getElementById('ct_modalidade_domiciliar').checked,
+                modalidade_online: document.getElementById('ct_modalidade_online').checked,
+                assinatura_paciente: hasSignature['ct_canvas_paciente'] ? canvases['ct_canvas_paciente'].toDataURL() : null,
+                assinatura_prof: hasSignature['ct_canvas_prof'] ? canvases['ct_canvas_prof'].toDataURL() : null
+            };
+            
+            localStorage.setItem('contrato_' + dados.contratante, JSON.stringify(dados));
+            mostrarToast('✅ Contrato salvo com sucesso!');
+        }
+        
+        function salvarDeclaracao() {
+            const dados = {
+                fisio_nome: document.getElementById('dc_fisio_nome').value,
+                fisio_crefito: document.getElementById('dc_fisio_crefito').value,
+                paciente_nome: document.getElementById('dc_paciente_nome').value,
+                paciente_cpf: document.getElementById('dc_paciente_cpf').value,
+                data_atend: document.getElementById('dc_data_atend').value,
+                local: document.getElementById('dc_local').value,
+                data_doc: document.getElementById('dc_data_doc').value,
+                assinatura: hasSignature['dc_canvas'] ? canvases['dc_canvas'].toDataURL() : null
+            };
+            
+            localStorage.setItem('declaracao_' + dados.paciente_nome, JSON.stringify(dados));
+            mostrarToast('✅ Declaração salva com sucesso!');
+        }
+        
+        function salvarEncaminhamento() {
+            const dados = {
+                fisio_nome: document.getElementById('en_fisio_nome').value,
+                fisio_crefito: document.getElementById('en_fisio_crefito').value,
+                paciente_nome: document.getElementById('en_paciente_nome').value,
+                paciente_cpf: document.getElementById('en_paciente_cpf').value,
+                paciente_nasc: document.getElementById('en_paciente_nasc').value,
+                dest_profissional: document.getElementById('en_dest_profissional').value,
+                dest_especialidade: document.getElementById('en_dest_especialidade').value,
+                dest_contato: document.getElementById('en_dest_contato').value,
+                queixa: document.getElementById('en_queixa').value,
+                motivo: document.getElementById('en_motivo').value,
+                local: document.getElementById('en_local').value,
+                data: document.getElementById('en_data').value,
+                assinatura: hasSignature['en_canvas'] ? canvases['en_canvas'].toDataURL() : null
+            };
+            
+            localStorage.setItem('encaminhamento_' + dados.paciente_nome, JSON.stringify(dados));
+            mostrarToast('✅ Encaminhamento salvo com sucesso!');
+        }
+        
+        function salvarReembolso() {
+            const dados = {
+                fisio_nome: document.getElementById('rb_fisio_nome').value,
+                fisio_crefito: document.getElementById('rb_fisio_crefito').value,
+                paciente_nome: document.getElementById('rb_paciente_nome').value,
+                paciente_cpf: document.getElementById('rb_paciente_cpf').value,
+                convenio: document.getElementById('rb_convenio').value,
+                diag_medico: document.getElementById('rb_diag_medico').value,
+                diag_fisio: document.getElementById('rb_diag_fisio').value,
+                procedimentos: document.getElementById('rb_procedimentos').value,
+                qtd_sessoes: document.getElementById('rb_qtd_sessoes').value,
+                periodo: document.getElementById('rb_periodo').value,
+                assinatura: hasSignature['rb_canvas'] ? canvases['rb_canvas'].toDataURL() : null
+            };
+            
+            localStorage.setItem('reembolso_' + dados.paciente_nome, JSON.stringify(dados));
+            mostrarToast('✅ Reembolso salvo com sucesso!');
+        }
+        
+        function salvarTCLE() {
+            const dados = {
+                paciente: document.getElementById('tc_paciente').value,
+                cpf: document.getElementById('tc_cpf').value,
+                fisio: document.getElementById('tc_fisio').value,
+                crefito: document.getElementById('tc_crefito').value,
+                nome_autorizacao: document.getElementById('tc_nome_autorizacao').value,
+                cpf_autorizacao: document.getElementById('tc_cpf_autorizacao').value,
+                local_data: document.getElementById('tc_local_data').value,
+                assinatura: hasSignature['tc_canvas'] ? canvases['tc_canvas'].toDataURL() : null
+            };
+            
+            localStorage.setItem('tcle_' + dados.paciente, JSON.stringify(dados));
+            mostrarToast('✅ TCLE salvo com sucesso!');
+        }
+        
+        function salvarTCLEImagem() {
+            const dados = {
+                profissional: document.getElementById('ti_profissional').value,
+                crefito: document.getElementById('ti_crefito').value,
+                nome: document.getElementById('ti_nome').value,
+                cpf: document.getElementById('ti_cpf').value,
+                nome_autorizacao: document.getElementById('ti_nome_autorizacao').value,
+                registro_clinico: document.getElementById('ti_registro_clinico').checked,
+                uso_educativo: document.getElementById('ti_uso_educativo').checked,
+                divulgacao: document.getElementById('ti_divulgacao').checked,
+                local_data: document.getElementById('ti_local_data').value,
+                assinatura_paciente: hasSignature['ti_canvas_paciente'] ? canvases['ti_canvas_paciente'].toDataURL() : null,
+                assinatura_prof: hasSignature['ti_canvas_prof'] ? canvases['ti_canvas_prof'].toDataURL() : null
+            };
+            
+            localStorage.setItem('tcle_imagem_' + dados.nome, JSON.stringify(dados));
+            mostrarToast('✅ TCLE Imagem salvo com sucesso!');
+        }
+        
+        function salvarTeleatendimento() {
+            const dados = {
+                paciente: document.getElementById('tl_paciente').value,
+                cpf: document.getElementById('tl_cpf').value,
+                fisio: document.getElementById('tl_fisio').value,
+                crefito: document.getElementById('tl_crefito').value,
+                local: document.getElementById('tl_local').value,
+                data: document.getElementById('tl_data').value,
+                assinatura: hasSignature['tl_canvas'] ? canvases['tl_canvas'].toDataURL() : null
+            };
+            
+            localStorage.setItem('teleatendimento_' + dados.paciente, JSON.stringify(dados));
+            mostrarToast('✅ Teleatendimento salvo com sucesso!');
+        }
+        
+        // ==========================================
+        // FUNÇÕES DE PDF E WHATSAPP
+        // ==========================================
+        async function gerarPDF(tipo) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Cabeçalho padrão
+            doc.setFillColor(30, 58, 95);
+            doc.rect(0, 0, 210, 35, 'F');
+            
+            doc.setTextColor(201, 162, 39);
+            doc.setFontSize(18);
+            doc.text('ASM Gestão Clínica', 105, 15, { align: 'center' });
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(12);
+            
+            let titulo = '';
+            let nomeArquivo = '';
+            let y = 50;
+            
+            switch(tipo) {
+                case 'avaliacao':
+                    titulo = 'Ficha de Avaliação Fisioterapêutica';
+                    nomeArquivo = 'Avaliacao_' + document.getElementById('av_paciente_nome').value;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    
+                    doc.setTextColor(30, 58, 95);
+                    doc.setFontSize(10);
+                    doc.text(`Paciente: ${document.getElementById('av_paciente_nome').value}`, 20, y);
+                    y += 7;
+                    doc.text(`Fisioterapeuta: ${document.getElementById('av_fisio_nome').value} - CREFITO: ${document.getElementById('av_fisio_crefito').value}`, 20, y);
+                    break;
+                    
+                case 'evolucao':
+                    if (pacienteSelecionado === null) {
+                        mostrarToast('⚠️ Selecione um paciente primeiro');
+                        return;
+                    }
+                    const pacientes = JSON.parse(localStorage.getItem('asm_pacientes') || '[]');
+                    const nomePaciente = pacientes[pacienteSelecionado].nome;
+                    titulo = 'Ficha de Evolução Fisioterapêutica';
+                    nomeArquivo = 'Evolucao_' + nomePaciente;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    
+                    doc.setTextColor(30, 58, 95);
+                    doc.setFontSize(10);
+                    doc.text(`Paciente: ${nomePaciente}`, 20, y);
+                    y += 10;
+                    
+                    // Evoluções preenchidas
+                    for (let i = 1; i <= 20; i++) {
+                        const data = document.getElementById(`data_evol${i}`).value;
+                        const texto = document.getElementById(`evol${i}`).value;
+                        if (data || texto) {
+                            if (y > 270) { doc.addPage(); y = 20; }
+                            doc.setFont(undefined, 'bold');
+                            doc.text(`Evolução ${i} - ${data ? new Date(data).toLocaleDateString('pt-BR') : '___/___/_____'}`, 20, y);
+                            y += 6;
+                            doc.setFont(undefined, 'normal');
+                            const linhas = doc.splitTextToSize(texto || 'Sem registro', 170);
+                            doc.text(linhas, 20, y);
+                            y += linhas.length * 5 + 5;
+                        }
+                    }
+                    break;
+                    
+                case 'alta':
+                    titulo = 'Relatório de Alta Fisioterapêutica';
+                    nomeArquivo = 'Alta_' + document.getElementById('al_paciente_nome').value;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    break;
+                    
+                case 'atestado':
+                    titulo = 'Atestado Fisioterapêutico';
+                    nomeArquivo = 'Atestado_' + document.getElementById('at_paciente_nome').value;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    break;
+                    
+                case 'contrato':
+                    titulo = 'Contrato de Prestação de Serviços';
+                    nomeArquivo = 'Contrato_' + document.getElementById('ct_contratante').value;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    break;
+                    
+                case 'declaracao':
+                    titulo = 'Declaração de Comparecimento';
+                    nomeArquivo = 'Declaracao_' + document.getElementById('dc_paciente_nome').value;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    break;
+                    
+                case 'encaminhamento':
+                    titulo = 'Encaminhamento Profissional';
+                    nomeArquivo = 'Encaminhamento_' + document.getElementById('en_paciente_nome').value;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    break;
+                    
+                case 'reembolso':
+                    titulo = 'Relatório para Convênio/Reembolso';
+                    nomeArquivo = 'Reembolso_' + document.getElementById('rb_paciente_nome').value;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    break;
+                    
+                case 'tcle':
+                    titulo = 'Termo de Consentimento Livre e Esclarecido';
+                    nomeArquivo = 'TCLE_' + document.getElementById('tc_paciente').value;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    break;
+                    
+                case 'tcle-imagem':
+                    titulo = 'Consentimento para Uso de Imagem';
+                    nomeArquivo = 'TCLE_Imagem_' + document.getElementById('ti_nome').value;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    break;
+                    
+                case 'teleatendimento':
+                    titulo = 'Termo de Consentimento para Teleatendimento';
+                    nomeArquivo = 'Teleatendimento_' + document.getElementById('tl_paciente').value;
+                    doc.text(titulo, 105, 25, { align: 'center' });
+                    break;
+            }
+            
+            // Rodapé
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text('ASM Gestão Clínica - Uso Licenciado', 105, 285, { align: 'center' });
+            doc.text('© Dra. Andresa Augusto Nascimento - Proibida reprodução sem autorização', 105, 290, { align: 'center' });
+            
+            doc.save(`${nomeArquivo || 'Documento'}.pdf`);
+            mostrarToast('📄 PDF gerado com sucesso!');
+        }
+        
+        function enviarWhatsApp(tipo) {
+            let mensagem = `*ASM Gestão Clínica*%0A%0A`;
+            
+            switch(tipo) {
+                case 'avaliacao':
+                    mensagem += `Ficha de Avaliação%0A`;
+                    mensagem += `Paciente: ${document.getElementById('av_paciente_nome').value}%0A`;
+                    break;
+                case 'alta':
+                    mensagem += `Relatório de Alta%0A`;
+                    mensagem += `Paciente: ${document.getElementById('al_paciente_nome').value}%0A`;
+                    break;
+                case 'atestado':
+                    mensagem += `Atestado Fisioterapêutico%0A`;
+                    mensagem += `Paciente: ${document.getElementById('at_paciente_nome').value}%0A`;
+                    break;
+                case 'contrato':
+                    mensagem += `Contrato de Prestação de Serviços%0A`;
+                    mensagem += `Contratante: ${document.getElementById('ct_contratante').value}%0A`;
+                    break;
+                case 'declaracao':
+                    mensagem += `Declaração de Comparecimento%0A`;
+                    mensagem += `Paciente: ${document.getElementById('dc_paciente_nome').value}%0A`;
+                    break;
+                case 'encaminhamento':
+                    mensagem += `Encaminhamento Profissional%0A`;
+                    mensagem += `Paciente: ${document.getElementById('en_paciente_nome').value}%0A`;
+                    break;
+                case 'reembolso':
+                    mensagem += `Relatório para Convênio%0A`;
+                    mensagem += `Paciente: ${document.getElementById('rb_paciente_nome').value}%0A`;
+                    break;
+                case 'tcle':
+                    mensagem += `Termo de Consentimento%0A`;
+                    mensagem += `Paciente: ${document.getElementById('tc_paciente').value}%0A`;
+                    break;
+                case 'tcle-imagem':
+                    mensagem += `Consentimento para Uso de Imagem%0A`;
+                    mensagem += `Paciente: ${document.getElementById('ti_nome').value}%0A`;
+                    break;
+                case 'teleatendimento':
+                    mensagem += `Termo de Teleatendimento%0A`;
+                    mensagem += `Paciente: ${document.getElementById('tl_paciente').value}%0A`;
+                    break;
+            }
+            
+            mensagem += `%0ADocumento disponível em PDF.`;
+            
+            window.open(`https://wa.me/?text=${mensagem}`, '_blank');
+        }
+        
+        function enviarWhatsAppEvolucao() {
+            if (pacienteSelecionado === null) {
+                mostrarToast('⚠️ Selecione um paciente primeiro');
+                return;
+            }
+            
+            const pacientes = JSON.parse(localStorage.getItem('asm_pacientes') || '[]');
+            const paciente = pacientes[pacienteSelecionado];
+            
+            let mensagem = `*Ficha de Evolução - ASM Gestão Clínica*%0A%0A`;
+            mensagem += `Paciente: ${paciente.nome}%0A`;
+            mensagem += `WhatsApp: ${paciente.whatsapp || 'Não informado'}%0A%0A`;
+            mensagem += `Documento disponível em PDF.`;
+            
+            // Se tiver WhatsApp, abre direto com o número
+            if (paciente.whatsapp) {
+                const numero = paciente.whatsapp.replace(/\D/g, '');
+                window.open(`https://wa.me/55${numero}?text=${mensagem}`, '_blank');
+            } else {
+                window.open(`https://wa.me/?text=${mensagem}`, '_blank');
+            }
+        }
+        
+        function mostrarToast(mensagem) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensagem;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // ==========================================
+        // INICIALIZAÇÃO
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gerar campos de evolução
+            gerarCamposEvolucao();
+            
+            // Carregar pacientes
+            carregarPacientes();
+            
+            // Inicializar canvas da primeira aba
+            inicializarCanvasAba('avaliacao');
+            
+            // Setar datas padrão
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('av_data').value = hoje;
+            document.getElementById('at_data_atendimento').value = hoje;
+            document.getElementById('dc_data_atend').value = hoje;
+            document.getElementById('dc_data_doc').value = hoje;
+            document.getElementById('en_data').value = hoje;
+            document.getElementById('tl_data').value = hoje;
+            
+            // Preview dinâmico teleatendimento
+            document.getElementById('tl_paciente').addEventListener('input', function() {
+                document.getElementById('tl_preview_paciente').textContent = this.value || '____________________';
+            });
+            document.getElementById('tl_cpf').addEventListener('input', function() {
+                document.getElementById('tl_preview_cpf').textContent = this.value || '____________________';
+            });
+            document.getElementById('tl_fisio').addEventListener('input', function() {
+                document.getElementById('tl_preview_fisio').textContent = this.value || '____________________';
+            });
+        });
+    </script>
+</body>
+</html>
