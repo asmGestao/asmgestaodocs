@@ -70,21 +70,34 @@
         }
         
         .tab {
-            padding: 10px 15px;
+            padding: 12px 18px;
             background: rgba(255,255,255,0.2);
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             color: white;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .tab:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
         }
         
         .tab.active {
             background: var(--dourado);
             color: var(--azul-marinho);
             font-weight: bold;
+            box-shadow: 0 4px 15px rgba(201, 162, 39, 0.4);
+        }
+        
+        .tab-icon {
+            font-size: 1.2rem;
         }
         
         .tab-content {
@@ -709,8 +722,11 @@
                 gap: 5px;
             }
             .tab {
-                padding: 8px 12px;
-                font-size: 0.75rem;
+                padding: 10px 14px;
+                font-size: 0.8rem;
+            }
+            .tab-icon {
+                font-size: 1.1rem;
             }
         }
     </style>
@@ -724,21 +740,50 @@
         
         <div class="tabs-container">
             <div class="tabs">
-                <button class="tab active" onclick="openTab('avaliacao')">Avaliação</button>
-                <button class="tab" onclick="openTab('evolucao')">Evolução</button>
-                <button class="tab" onclick="openTab('contrato')">Contrato</button>
-                <button class="tab" onclick="openTab('recibo')">Recibo</button>
-                <button class="tab" onclick="openTab('tcle-imagem')">TCLE Imagem</button>
-                <button class="tab" onclick="openTab('tcle-tratamento')">TCLE Tratamento</button>
-                <button class="tab" onclick="openTab('atestado')">Atestado</button>
-                <button class="tab" onclick="openTab('reembolso')">Reembolso</button>
-                <button class="tab" onclick="openTab('alta')">Alta</button>
-                <button class="tab" onclick="openTab('comparecimento')">Comparecimento</button>
-                <button class="tab" onclick="openTab('encaminhamento')">Encaminhamento</button>
+                <button class="tab active" onclick="openTab('avaliacao')">
+                    <span class="tab-icon">📋</span>
+                    <span>Avaliação</span>
+                </button>
+                <button class="tab" onclick="openTab('evolucao')">
+                    <span class="tab-icon">📈</span>
+                    <span>Evolução</span>
+                </button>
+                <button class="tab" onclick="openTab('contrato')">
+                    <span class="tab-icon">📝</span>
+                    <span>Contrato</span>
+                </button>
+                <button class="tab" onclick="openTab('recibo')">
+                    <span class="tab-icon">💰</span>
+                    <span>Recibo</span>
+                </button>
+                <button class="tab" onclick="openTab('tcle-imagem')">
+                    <span class="tab-icon">📸</span>
+                    <span>TCLE Imagem</span>
+                </button>
+                <button class="tab" onclick="openTab('tcle-tratamento')">
+                    <span class="tab-icon">🤝</span>
+                    <span>TCLE Tratamento</span>
+                </button>
+                <button class="tab" onclick="openTab('atestado')">
+                    <span class="tab-icon">📄</span>
+                    <span>Atestado</span>
+                </button>
+                <button class="tab" onclick="openTab('reembolso')">
+                    <span class="tab-icon">💳</span>
+                    <span>Reembolso</span>
+                </button>
+                <button class="tab" onclick="openTab('alta')">
+                    <span class="tab-icon">✅</span>
+                    <span>Alta</span>
+                </button>
+                <button class="tab" onclick="openTab('encaminhamento')">
+                    <span class="tab-icon">➡️</span>
+                    <span>Encaminhamento</span>
+                </button>
             </div>
         </div>
 
-        <!-- ABA AVALIAÇÃO - ORIGINAL INTACTO -->
+        <!-- ABA AVALIAÇÃO -->
         <div id="avaliacao" class="tab-content active">
             <div class="form-card">
                 <div class="form-title">👤 Dados do Profissional</div>
@@ -1624,7 +1669,7 @@
                         <span class="signature-label">Toque e arraste para assinar</span>
                     </div>
                     <div class="btn-group" style="margin-top: 10px;">
-                        <button class="btn btn-danger btn-small" onclick="limparAssinatura('ti-paciente')">🗑️ Limpar</button>
+                        button class="btn btn-danger btn-small" onclick="limparAssinatura('ti-paciente')">🗑️ Limpar</button>
                     </div>
                 </div>
                 <div class="assinatura-section" style="margin-top: 15px;">
@@ -2104,80 +2149,6 @@
             </div>
         </div>
 
-        <!-- ABA COMPARECIMENTO -->
-        <div id="comparecimento" class="tab-content">
-            <div class="form-card">
-                <div class="form-title">👤 Dados do Profissional</div>
-                <div class="prof-row">
-                    <div class="form-group">
-                        <label class="form-label">Fisioterapeuta</label>
-                        <input type="text" class="form-input" id="cp-nomeFisio">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">CREFITO</label>
-                        <input type="text" class="form-input" id="cp-crefito">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-card">
-                <div class="form-title">👤 Dados do Paciente</div>
-                <div class="form-group">
-                    <label class="form-label">Nome Completo</label>
-                    <input type="text" class="form-input" id="cp-nomePaciente">
-                </div>
-                <div class="prof-row">
-                    <div class="form-group">
-                        <label class="form-label">CPF</label>
-                        <input type="text" class="form-input" id="cp-cpf">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Data</label>
-                        <input type="date" class="form-input" id="cp-data">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-card">
-                <div class="form-title">⏰ Horário do Atendimento</div>
-                <div class="prof-row">
-                    <div class="form-group">
-                        <label class="form-label">Horário Início</label>
-                        <input type="time" class="form-input" id="cp-horaInicio">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Horário Término</label>
-                        <input type="time" class="form-input" id="cp-horaFim">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-card">
-                <div class="form-title">✍️ Assinatura Digital</div>
-                <div class="assinatura-section">
-                    <h4>Assine com o dedo na tela abaixo:</h4>
-                    <div class="signature-area">
-                        <canvas id="cp-assinaturaCanvas" class="signature-pad"></canvas>
-                        <span class="signature-label">Toque e arraste para assinar</span>
-                    </div>
-                    <div class="btn-group" style="margin-top: 10px;">
-                        <button class="btn btn-danger btn-small" onclick="limparAssinatura('cp')">🗑️ Limpar</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Local e Data</label>
-                <input type="text" class="form-input" id="cp-localData">
-            </div>
-            
-            <div class="btn-group">
-                <button class="btn btn-primary" onclick="salvarComparecimento()">💾 Salvar</button>
-                <button class="btn btn-success" onclick="gerarPDFComparecimento()">📄 PDF</button>
-                <button class="btn btn-whatsapp" onclick="enviarWhatsAppComparecimento()">💬 WhatsApp</button>
-            </div>
-        </div>
-
         <!-- ABA ENCAMINHAMENTO -->
         <div id="encaminhamento" class="tab-content">
             <div class="form-card">
@@ -2321,7 +2292,7 @@
             });
             
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            event.target.closest('.tab').classList.add('active');
             
             // Re-inicializar canvas quando mudar de aba
             setTimeout(() => {
@@ -2341,7 +2312,6 @@
                 'at-assinaturaCanvas',
                 'rb-assinaturaCanvas',
                 'al-assinaturaCanvas',
-                'cp-assinaturaCanvas',
                 'en-assinaturaCanvas'
             ];
             
@@ -2378,6 +2348,7 @@
                 ctx.beginPath();
                 ctx.moveTo(x, y);
                 canvas.parentElement.querySelector('.signature-label').style.display = 'none';
+                assinaturas[canvasId].hasSignature = true;
             }
             
             function draw(e) {
@@ -2418,7 +2389,6 @@
                 'at': ['at-assinaturaCanvas'],
                 'rb': ['rb-assinaturaCanvas'],
                 'al': ['al-assinaturaCanvas'],
-                'cp': ['cp-assinaturaCanvas'],
                 'en': ['en-assinaturaCanvas']
             };
             
@@ -2638,11 +2608,6 @@
         function salvarAlta() {
             salvarDadosFisio();
             mostrarToast('✅ Relatório de alta salvo com sucesso!');
-        }
-        
-        function salvarComparecimento() {
-            salvarDadosFisio();
-            mostrarToast('✅ Declaração de comparecimento salva com sucesso!');
         }
         
         function salvarEncaminhamento() {
@@ -2866,24 +2831,6 @@
             mostrarToast('📄 PDF gerado com sucesso!');
         }
         
-        async function gerarPDFComparecimento() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            doc.setFillColor(30, 58, 95);
-            doc.rect(0, 0, 210, 35, 'F');
-            doc.setTextColor(201, 162, 39);
-            doc.setFontSize(18);
-            doc.text('ASM Gestão Clínica', 105, 15, { align: 'center' });
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(12);
-            doc.text('Declaração de Comparecimento', 105, 25, { align: 'center' });
-            
-            const nome = document.getElementById('cp-nomePaciente').value || 'Comparecimento';
-            doc.save(`Comparecimento_${nome}.pdf`);
-            mostrarToast('📄 PDF gerado com sucesso!');
-        }
-        
         async function gerarPDFEncaminhamento() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -2956,12 +2903,6 @@
         function enviarWhatsAppAlta() {
             const nome = document.getElementById('al-nomePaciente').value || 'Paciente';
             const msg = `*Relatório de Alta - ASM Gestão Clínica*%0A%0APaciente: ${nome}%0A%0AAlta registrada!`;
-            window.open(`https://wa.me/?text=${msg}`, '_blank');
-        }
-        
-        function enviarWhatsAppComparecimento() {
-            const nome = document.getElementById('cp-nomePaciente').value || 'Paciente';
-            const msg = `*Declaração de Comparecimento - ASM Gestão Clínica*%0A%0APaciente: ${nome}%0A%0ADeclaração disponível!`;
             window.open(`https://wa.me/?text=${msg}`, '_blank');
         }
         
